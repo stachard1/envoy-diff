@@ -53,6 +53,17 @@ def cmd_report(args):
     print(render_report_text(report, color=not args.no_color))
 
 
+def cmd_show(args):
+    """Print the contents of a saved profile as key=value lines."""
+    try:
+        env = load_profile(args.name, profile_dir=Path(args.profile_dir))
+    except FileNotFoundError:
+        print(f"Profile '{args.name}' not found.", file=sys.stderr)
+        sys.exit(1)
+    for key, value in sorted(env.items()):
+        print(f"{key}={value}")
+
+
 def build_profile_parser(subparsers):
     p = subparsers.add_parser("profile", help="Manage env profiles")
     p.add_argument("--profile-dir", default=str(DEFAULT_PROFILE_DIR))
@@ -65,6 +76,10 @@ def build_profile_parser(subparsers):
 
     pl = sub.add_parser("list", help="List saved profiles")
     pl.set_defaults(func=cmd_list)
+
+    pshow = sub.add_parser("show", help="Show contents of a saved profile")
+    pshow.add_argument("name")
+    pshow.set_defaults(func=cmd_show)
 
     pd = sub.add_parser("delete", help="Delete a profile")
     pd.add_argument("name")
