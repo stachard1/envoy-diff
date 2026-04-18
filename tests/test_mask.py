@@ -66,3 +66,10 @@ def test_unmask_count_none_masked():
     env = {"HOST": "localhost", "PORT": "80"}
     masked = mask_env(env)
     assert unmask_count(env, masked) == 0
+
+
+def test_mask_env_does_not_mutate_original(sample_env):
+    """Ensure mask_env returns a new dict and does not modify the input."""
+    original = dict(sample_env)
+    mask_env(sample_env)
+    assert sample_env == original
