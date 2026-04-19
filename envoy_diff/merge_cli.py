@@ -33,14 +33,29 @@ def build_merge_parser(parent=None) -> argparse.ArgumentParser:
     return p
 
 
-def run_merge(args: argparse.Namespace, out=sys.stdout) -> int:
+def _load_envs(paths: List[str]):
+    """Parse each env file, returning (envs, exit_code).
+
+    Returns a list of parsed env dicts on success, or None with a non-zero
+    exit code if any file cannot be read.
+    """
     envs = []
-    for path in args.files:
+    for path in paths:
         try:
             envs.append(parse_env_file(path))
         except FileNotFoundError:
             print(f"Error: file not found: {path}", file=sys.stderr)
-            return 2
+            return None, 2
+        except OSError as exc:
+            print(f"Error: could not read {path}: {exc}", file=sys.stderr)
+            return None, 2
+    return envs, 0
+
+
+def run_merge(args: argparse.Namespace, out=sys.stdout) -> int:
+    envs, code = _load_envs(args.files)
+    if envs is None:
+        return code
 
     result = merge_envs(*envs, strategy=args.strategy, labels=args.files)
 
