@@ -26,6 +26,7 @@ def after():
 
 
 def test_group_added_keys_by_prefix(before, after):
+    """Added keys should be groupable by prefix after diffing."""
     result = diff_envs(before, after)
     added_env = {k: after[k] for k in result.added}
     groups = group_by_prefix(added_env)
@@ -33,6 +34,7 @@ def test_group_added_keys_by_prefix(before, after):
 
 
 def test_group_changed_keys_by_prefix(before, after):
+    """Changed keys should produce at least one recognisable prefix group."""
     result = diff_envs(before, after)
     changed_env = {k: after[k] for k in result.changed}
     groups = group_by_prefix(changed_env)
@@ -40,6 +42,7 @@ def test_group_changed_keys_by_prefix(before, after):
 
 
 def test_group_by_tag_flags_sensitive(before, after):
+    """SECRET_TOKEN should appear in tag-based groups for changed keys."""
     result = diff_envs(before, after)
     changed_env = {k: after[k] for k in result.changed}
     groups = group_by_tag(changed_env)
@@ -48,7 +51,17 @@ def test_group_by_tag_flags_sensitive(before, after):
 
 
 def test_group_summary_non_empty(before, after):
+    """group_summary should return a non-empty string containing '->'."""
     groups = group_by_prefix(after)
     s = group_summary(groups)
     assert s != ""
     assert "->" in s
+
+
+def test_removed_keys_not_in_after_groups(before, after):
+    """Keys removed between environments should not appear in groups built from 'after'."""
+    result = diff_envs(before, after)
+    after_groups = group_by_prefix(after)
+    all_after_keys = {k for g in after_groups.values() for k in g.keys}
+    for removed_key in result.removed:
+        assert removed_key not in all_after_keys
