@@ -23,6 +23,23 @@ def build_graph_parser(sub: argparse._SubParsersAction) -> argparse.ArgumentPars
     return p
 
 
+def _format_node_text(key: str, node: object, changed_keys: set) -> str:  # type: ignore[type-arg]
+    """Format a single graph node as a human-readable text line.
+
+    Args:
+        key: The environment variable name.
+        node: The graph node containing tags, dependencies, and dependents.
+        changed_keys: Set of keys that were directly changed.
+
+    Returns:
+        A formatted string representing the node.
+    """
+    marker = "*" if key in changed_keys else " "
+    tags = f"[{', '.join(node.tags)}]" if node.tags else ""
+    deps = f"  deps: {node.dependencies}" if node.dependencies else ""
+    return f"  {marker} {key} {tags}{deps}"
+
+
 def cmd_graph(args: argparse.Namespace) -> int:
     try:
         before = parse_env_file(args.before)
@@ -57,11 +74,7 @@ def cmd_graph(args: argparse.Namespace) -> int:
             graph.impacted_keys() if args.impacted_only else sorted(graph.nodes)
         )
         for key in keys_to_show:
-            node = graph.nodes[key]
-            marker = "*" if key in graph.changed_keys else " "
-            tags = f"[{', '.join(node.tags)}]" if node.tags else ""
-            deps = f"  deps: {node.dependencies}" if node.dependencies else ""
-            print(f"  {marker} {key} {tags}{deps}")
+            print(_format_node_text(key, graph.nodes[key], graph.changed_keys))
 
     return 0
 
