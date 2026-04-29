@@ -106,10 +106,18 @@ def test_stats_as_dict_keys(changed_envs):
     assert expected_keys == set(d.keys())
 
 
-def test_stats_as_dict_values_match(changed_envs):
+def test_stats_as_dict_values_match_stats(changed_envs):
+    """Ensure stats_as_dict values are consistent with the DiffStats object."""
     before, after = changed_envs
     stats = compute_stats(before, after)
     d = stats_as_dict(stats)
     assert d["added"] == stats.added
     assert d["removed"] == stats.removed
+    assert d["changed"] == stats.changed
+    assert d["unchanged"] == stats.unchanged
+    assert d["total_changes"] == stats.total_changes
+    assert d["sensitive_changes"] == stats.sensitive_changes
+    assert d["risk_score"] == stats.risk_score
     assert d["risk_level"] == stats.risk_level
+    assert d["tag_counts"] == stats.tag_counts
+    assert d["top_changed_keys"] == stats.top_changed_keys
